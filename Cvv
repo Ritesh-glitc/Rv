@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mountain Biking Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #cce7ff;
+    }
+    canvas {
+      display: block;
+      background-image: url('https://www.w3schools.com/w3images/mountains.jpg'); /* Example background image */
+      background-size: cover;
+    }
+    .game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 50px;
+      color: white;
+      font-weight: bold;
+      display: none;
+    }
+    .score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-over">Game Over</div>
+  <div class="score">Score: 0</div>
+  <canvas id="gameCanvas"></canvas>
+  <audio id="backgroundMusic" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3"> <!-- Example background music -->
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const gameOverText = document.querySelector(".game-over");
+    const scoreText = document.querySelector(".score");
+    const music = document.getElementById("backgroundMusic");
+
+    // Set canvas size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Variables for the game
+    let bikeX = 50;
+    let bikeY = canvas.height - 100;
+    let bikeSpeed = 5;
+    let obstacles = [];
+    let score = 0;
+    let isGameOver = false;
+
+    // Load background music
+    music.play();
+
+    // Function to draw the bike
+    function drawBike() {
+      ctx.fillStyle = "brown";
+      ctx.fillRect(bikeX, bikeY, 50, 30); // Simple rectangle as bike
+    }
+
+    // Function to generate obstacles
+    function generateObstacles() {
+      if (Math.random() < 0.02) {  // 2% chance to generate an obstacle
+        let obstacleHeight = Math.random() * 50 + 20; // Random height between 20 and 70
+        obstacles.push({ x: canvas.width, y: canvas.height - obstacleHeight, width: 30, height: obstacleHeight });
+      }
+    }
+
+    // Function to draw obstacles
+    function drawObstacles() {
+      ctx.fillStyle = "red";
+      obstacles.forEach(obstacle => {
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      });
+    }
+
+    // Function to move obstacles
+    function moveObstacles() {
+      obstacles.forEach(obstacle => {
+        obstacle.x -= 5; // Speed at which obstacles move
+      });
+      // Remove obstacles that are off the screen
+      obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
+    }
+
+    // Function to detect collisions
+    function checkCollisions() {
+      obstacles.forEach(obstacle => {
+        if (
+          bikeX + 50 > obstacle.x &&
+          bikeX < obstacle.x + obstacle.width &&
+          bikeY + 30 > obstacle.y
+        ) {
+          isGameOver = true;
+          gameOverText.style.display = "block";
+          music.pause(); // Stop music on game over
+        }
+      });
+    }
+
+    // Function to update the game
+    function updateGame() {
+      if (isGameOver) return;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      generateObstacles();
+      moveObstacles();
+      checkCollisions();
+      drawBike();
+      drawObstacles();
+      
+      // Update score
+      score++;
+      scoreText.innerText = "Score: " + score;
+
+      requestAnimationFrame(updateGame);
+    }
+
+    // Function to move the bike
+    function moveBike(event) {
+      if (event.key === "ArrowUp" && bikeY > 0) {
+        bikeY -= bikeSpeed;
+      }
+      if (event.key === "ArrowDown" && bikeY < canvas.height - 30) {
+        bikeY += bikeSpeed;
+      }
+    }
+
+    // Add event listener for keyboard input
+    window.addEventListener("keydown", moveBike);
+
+    // Start the game
+    updateGame();
+  </script>
+</body>
+</html>
